@@ -24,7 +24,7 @@ function operation() {
         }else if(action === 'Consultar Saldo'){
 
         }else if(action === 'Depositar'){
-
+            deposit()
         }else if(action === 'Sacar'){
 
         }else if(action === 'Sair'){
@@ -73,4 +73,72 @@ function buildAccount() {
 
     })
     .catch(err => console.log(err))
+}
+
+function deposit(accountName){
+    inquirer.prompt([
+        {
+            name: 'accountName',
+            message: 'Qual o nome da conta que voce deseja depositar dinheiro? ',
+        },
+    ])
+    .then((answer) => {
+        const accountName = answer['accountName']
+
+        if(!accountExists(accountName)){
+            return deposit()
+        }
+
+        inquirer.prompt([
+            {
+                name: 'amount',
+                message: 'Quanto voce deseja depositar? ',
+            },
+        ])
+        .then((answer) => {
+            const amount = answer['amount']
+
+            addAmount(accountName, amount)
+            operation()
+        })
+    })
+    .catch(err => console.log(err))
+}
+
+function accountExists(accountName){
+    if(!fs.existsSync(`accounts/${accountName}.json`)){
+        console.log(chalk.bgRed.black('Esta conta nao existe, tente outra: '))
+        return false
+    }
+    return true
+}
+
+function addAmount(accountName, amount){
+    const accountData = getAccount(accountName)
+
+    if(!amount){ 
+        console.log(chalk.bgRed.black('Ocorreu um erro, tente novamente mais tarde! '))
+        return deposit()
+    }
+
+    accountData.balance = parseFloat(amount) + parseFloat(accountData.balance)
+
+    fs.writeFileSync(
+        `accounts/${accountName}.json`,
+        JSON.stringify(accountData),
+        function (err) {
+            console.log(err)
+        },
+    )
+
+    console.log(chalk.green(`O valor de R$${amount} foi depositado com successo!`))
+}
+
+function getAccount(accountName){
+    const accountJSON = fs.readFileSync(`accounts/${accountName}.json`, {
+        encoding: 'utf8',
+        flag: 'r',
+    })
+
+    return JSON.parse(accountJSON)
 }
