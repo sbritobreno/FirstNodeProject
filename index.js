@@ -22,7 +22,7 @@ function operation() {
         if(action === 'Criar Conta'){
             createAccount()
         }else if(action === 'Consultar Saldo'){
-
+            getAccountBalance()
         }else if(action === 'Depositar'){
             deposit()
         }else if(action === 'Sacar'){
@@ -141,4 +141,27 @@ function getAccount(accountName){
     })
 
     return JSON.parse(accountJSON)
+}
+
+function getAccountBalance(){
+    inquirer.prompt([
+        {
+            name: 'accountName',
+            message: 'Qual o nome da sua conta? ',
+        },
+    ])
+    .then((answer) => {
+        const accountName = answer['accountName']
+
+        if(!accountExists(accountName)){
+            return getAccountBalance()
+        }
+
+        const accountData = getAccount(accountName)
+
+        console.log(chalk.bgBlue.black(`O saldo atual da sua conta eh R$${accountData.balance}`))
+
+        operation()
+    })
+    .catch(err => console.log(err))
 }
